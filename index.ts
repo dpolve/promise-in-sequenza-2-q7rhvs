@@ -1,6 +1,5 @@
-import { fromEvent } from 'rxjs';
-import './style.css';
-
+import { fromEvent } from "rxjs";
+import "./style.css";
 
 /**
  * simula un'attività che impiega del tempo, es. una richiesta http o calcolo
@@ -13,15 +12,14 @@ function worker(id: number = 0): Promise<number> {
       try {
         // semplice calcolo
         const result = id * 10;
-        console.log('worker('+id+') => '+result);
+        console.log("worker(" + id + ") => " + result);
         resolve(result);
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     }, Math.random() * 4000);
   });
 }
-
 
 /**
  * Quando le operazioni devono essere effettuate in sequenza e ne conosciamo
@@ -33,28 +31,27 @@ function onSerie(): Promise<number[]> {
   const result: number[] = [];
 
   return worker(1)
-    .then((res) => {
+    .then(res => {
       console.log("Operation done: ", res);
       result.push(res);
       return worker(2);
     })
-    .then((res) => {
+    .then(res => {
       console.log("Operation done: ", res);
       result.push(res);
       return worker(3);
     })
-    .then((res) => {
+    .then(res => {
       console.log("Operation done: ", res);
       result.push(res);
       return worker(4);
     })
-    .then((res) => {
+    .then(res => {
       console.log("Operation done: ", res);
       result.push(res);
       return result;
     });
 }
-
 
 /**
  * Quando le operazioni devono essere effettuate in sequenza ma non ne conosciamo
@@ -66,16 +63,14 @@ function onSerie(): Promise<number[]> {
 function onSerieConArray(): Promise<number[]> {
   const result: number[] = [];
 
-  const inputList: number[] = [
-    1, 2, 3, 4
-  ];
+  const inputList: number[] = [1, 2, 3, 4];
 
   let p: Promise<number> = null;
   for (let i = 0; i < inputList.length; i++) {
-    if ( p == null ) {
+    if (p == null) {
       p = worker(inputList[i]);
     } else {
-      p = p.then((res) => {
+      p = p.then(res => {
         console.log("Operation done: ", res);
         result.push(res);
         return worker(inputList[i]);
@@ -83,13 +78,12 @@ function onSerieConArray(): Promise<number[]> {
     }
   }
 
-  return p.then((res) => {
-      console.log("Operation done: ", res);
-      result.push(res);
-      return result;
-    });
+  return p.then(res => {
+    console.log("Operation done: ", res);
+    result.push(res);
+    return result;
+  });
 }
-
 
 /**
  * Quando le operazioni devono essere effettuate in parallelo e ne conosciamo
@@ -97,33 +91,27 @@ function onSerieConArray(): Promise<number[]> {
  * vengono passate alla Promise.all()
  */
 function onParallelo(): Promise<number[]> {
-  const inputList: number[] = [
-    1, 2, 3, 4
-  ];
+  const inputList: number[] = [1, 2, 3, 4];
 
   const promiseList: Promise<number>[] = [];
 
   for (let i = 0; i < inputList.length; i++) {
-      promiseList.push( worker(inputList[i]) );
+    promiseList.push(worker(inputList[i]));
   }
 
-  return Promise.all(promiseList)
-    .then((resultList) => {
-      console.log("Operation done: ", resultList);
-      return resultList;
-    });
+  return Promise.all(promiseList).then(resultList => {
+    console.log("Operation done: ", resultList);
+    return resultList;
+  });
 }
-
-
-
-
-
 
 /**
  * Gestione click dei pulsanti
  */
 // ottiene l'elenco dei button (IMPORTANTE impostare l'id!)
-const buttonList: HTMLCollectionOf<HTMLButtonElement> = document.getElementsByTagName('button');
+const buttonList: HTMLCollectionOf<
+  HTMLButtonElement
+> = document.getElementsByTagName("button");
 
 // https://stackoverflow.com/a/22754453
 for (let button of buttonList) {
@@ -132,29 +120,29 @@ for (let button of buttonList) {
   // 2. si registra agli eventi 'click'
   // 3. ad ogni 'click' chiama la funzione 'on<id>()'
 
-  fromEvent(button, 'click').subscribe(
-    (event) => {
-      console.log('Click on button: ' + button.innerText);
-      const funcName = 'on'+button.id;
+  fromEvent(button, "click").subscribe(
+    event => {
+      console.log("Click on button: " + button.innerText);
+      const funcName = "on" + button.id;
       try {
         button.disabled = true;
-        eval(funcName+'()')
-          .then((res) => {
+        eval(funcName + "()")
+          .then(res => {
             console.log("Final result: ", res);
-            console.log('Completed button: ' + button.innerText);
+            console.log("Completed button: " + button.innerText);
             button.disabled = false;
           })
-          .catch((err) => {
+          .catch(err => {
             console.warn(err);
             button.disabled = false;
           });
-      } catch(err) {
-        console.warn('Error calling ' + funcName + ': ' + err);
+      } catch (err) {
+        console.warn("Error calling " + funcName + ": " + err);
         button.disabled = false;
       }
     },
-    (err) => {
-      console.error('Error on fromEvent(): ' + button.innerText);
-    });
-
+    err => {
+      console.error("Error on fromEvent(): " + button.innerText);
+    }
+  );
 }
